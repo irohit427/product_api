@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/irohit427/product_api/data"
 	"log"
@@ -60,6 +61,17 @@ func (p *Products) ValidateRequestMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			p.l.Printf("[ERROR]: ", err)
 			http.Error(rw, "Unable to marshal JSON", http.StatusInternalServerError)
+			return
+		}
+
+		err = prod.Validate()
+		if err != nil {
+			p.l.Printf("[ERROR]: ", err)
+			http.Error(
+					rw,
+					fmt.Sprintf("Error validating product: %s", err),
+					http.StatusBadRequest,
+				)
 			return
 		}
 
