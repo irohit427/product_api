@@ -1,13 +1,14 @@
 package main
 
 import (
+	"github.com/gorilla/mux"
 	"log"
 	"os"
 	"time"
 
 	"net/http"
 
-	"github.com/irohit427/coffee-shop/handlers"
+	"github.com/irohit427/product_api/handlers"
 )
 
 func main() {
@@ -15,9 +16,18 @@ func main() {
 
 	products := handlers.ListProducts(l)
 
-	sm := http.NewServeMux()
+	sm := mux.NewRouter()
 
-	sm.Handle("/", products)
+	getRouter := sm.Methods(http.MethodGet).Subrouter()
+	getRouter.HandleFunc("/", products.GetProducts)
+
+	putRouter := sm.Methods(http.MethodPut).Subrouter()
+	putRouter.HandleFunc("/{id:[0-9]+}", products.UpdateProduct)
+	putRouter.Use(products.ValidateRequestMiddleware)
+
+	postRouter := sm.Methods(http.MethodPost).Subrouter()
+	postRouter.HandleFunc("/", products.AddProduct)
+	postRouter.Use(products.ValidateRequestMiddleware)
 
 	server := &http.Server{
 		Addr:         ":9090",
